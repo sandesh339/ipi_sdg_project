@@ -29,7 +29,7 @@ ChartJS.register(
   RadialLinearScale
 );
 
-const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN;
+const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN;
 
 // Color schemes for different visualization types
 const TARGET_COLOR = '#E74C3C';
