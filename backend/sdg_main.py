@@ -32,6 +32,7 @@ from sdg_utils import (
 )
 import tiktoken
 from datetime import datetime
+import os
 
 # Constants for conversation management
 MAX_HISTORY_MESSAGES = 7  
@@ -246,7 +247,7 @@ def analyze_sdg_query_intent(user_query):
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware, 
-    allow_origins=["*"],
+    allow_origins=["https://euphonious-rugelach-5fe7a5.netlify.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
