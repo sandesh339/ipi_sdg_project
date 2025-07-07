@@ -35,6 +35,7 @@ from datetime import datetime
 import os
 import logging
 logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 # Constants for conversation management
@@ -290,13 +291,15 @@ async def chatbot(request: ChatbotRequest):
         # Test database connection
         try:
             conn = get_db_connection()
+            logger.info("Connected to database")
             conn.close()
         except psycopg2.Error as e:
+            logger.info("Database error:", str(e))
             raise HTTPException(status_code=500, detail=f"Database connection error: {str(e)}")
 
         user_input = request.query
-        print("Request body:", request.dict())
-        print("User query:", user_input)
+        logger.info("Request body:", request.dict())
+        logger.info("User query:", user_input)
         session = session_store
 
         if "history" not in session:
@@ -307,7 +310,7 @@ async def chatbot(request: ChatbotRequest):
         try:
              session["history"] = manage_conversation_history(session["history"], user_message)
         except Exception as e:
-            print("History management error:", str(e))
+            logger.info("History management error:", str(e))
             raise HTTPException(status_code=500, detail=f"Histroy error: {str(e)}")
             
        
