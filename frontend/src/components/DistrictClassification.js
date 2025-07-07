@@ -24,7 +24,7 @@ ChartJS.register(
   ArcElement
 );
 
-const MAPBOX_TOKEN = "pk.eyJ1Ijoic2FuZGVzaDMzOSIsImEiOiJjbThqazJuaTYwaTlwMmtwdzU4NzUwN3YwIn0.Kc6gPcC0Jf2rSJN4ieeimA";
+const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN;
 
 export default function DistrictClassification({ data = {}, boundary = [], chartOnly = false }) {
   const [viewState, setViewState] = useState({
