@@ -291,7 +291,7 @@ export default function ConversationView() {
 
     // Send to backend
     try {
-      await fetch("http://127.0.0.1:8000/store_reaction/", {
+      await fetch("https://ipi-sdg-project.onrender.com/store_reaction/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -335,7 +335,7 @@ export default function ConversationView() {
     setIsLoading(true);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/chatbot/", {
+      const res = await fetch("https://ipi-sdg-project.onrender.com/chatbot", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
