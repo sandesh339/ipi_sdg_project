@@ -24,7 +24,7 @@ ChartJS.register(
 );
 
 // Set Mapbox access token
-mapboxgl.accessToken = "pk.eyJ1Ijoic2FuZGVzaDMzOSIsImEiOiJjbThqazJuaTYwaTlwMmtwdzU4NzUwN3YwIn0.Kc6gPcC0Jf2rSJN4ieeimA";
+mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
 
 // Color schemes for border districts
 const BORDER_COLORS = {
