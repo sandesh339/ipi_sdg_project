@@ -27,7 +27,7 @@ ChartJS.register(
   ArcElement
 );
 
-const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN;
+const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN;
 
 // Color schemes for different visualization types
 const SDG_COLORS = {
