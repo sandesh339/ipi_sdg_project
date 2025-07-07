@@ -7,6 +7,10 @@ from rapidfuzz import process, fuzz
 import re
 import os
 import socket
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 
 def get_db_connection():
     """
