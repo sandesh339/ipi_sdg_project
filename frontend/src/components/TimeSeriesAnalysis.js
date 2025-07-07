@@ -25,7 +25,7 @@ ChartJS.register(
   Legend
 );
 
-mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
+const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN;
 
 // Colors for different trend directions
 const TREND_COLORS = {
