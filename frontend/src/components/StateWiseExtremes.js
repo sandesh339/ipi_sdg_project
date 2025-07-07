@@ -32,7 +32,7 @@ ChartJS.register(
   Legend
 );
 // Set Mapbox access token
-mapboxgl.accessToken = process.env.MAPBOX_TOKEN;
+mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
 
 // Map Component for State-wise Extremes
 const StateWiseExtremesMap = ({ data }) => {
