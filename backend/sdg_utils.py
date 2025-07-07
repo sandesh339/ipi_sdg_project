@@ -14,12 +14,10 @@ logger = logging.getLogger(__name__)
 
 def get_db_connection():
     """
-    Render-optimized database connection for Supabase
-    Handles IPv6/IPv4 connectivity issues for cloud deployment
+    Render-optimized database connection for Supabase with IPv6 support
     """
-     
     
-    # Configuration with environment variable support
+    # Enhanced configuration with IPv6 support
     config = {
         'host': os.getenv('DB_HOST'),
         'port': int(os.getenv('DB_PORT')),
@@ -28,18 +26,20 @@ def get_db_connection():
         'password': os.getenv('DB_PASSWORD'),
         'sslmode': 'require',
         'connect_timeout': 30,
-        'application_name': 'SDG_Chatbot_Render'
+        'application_name': 'SDG_Project'
     }
     
-    # Multiple connection strategies for maximum compatibility
+    # Enhanced connection strategies with IPv6 priority
     strategies = [
-        # Strategy 1: Try gethostbyname for IPv4 (most reliable)
+        # Strategy 1: Direct IPv6 connection (most likely to work for Supabase)
+        lambda: connect_with_ipv6_direct(config),
+        # Strategy 2: Connection string with IPv6 preference
+        lambda: connect_with_ipv6_connection_string(config),
+        # Strategy 3: Try gethostbyname for IPv4 (fallback)
         lambda: connect_with_gethostbyname(config),
-        # Strategy 2: Try forced IPv4 resolution 
+        # Strategy 4: Try forced IPv4 resolution 
         lambda: connect_with_ipv4_force(config),
-        # Strategy 3: Connection string approach
-        lambda: connect_with_connection_string(config),
-        # Strategy 4: Fallback to original hostname
+        # Strategy 5: Original psycopg2 default
         lambda: psycopg2.connect(**config)
     ]
     
@@ -53,15 +53,69 @@ def get_db_connection():
                 cursor.execute("SELECT 1;")
                 cursor.fetchone()
                 cursor.close()
-                logger.info(f"✅ Connected using strategy {i}")
+                print(f"✅ Connected using strategy {i}")
                 return conn
         except Exception as e:
             last_error = e
-            logger.info(f"⚠️ Strategy {i} failed: {e}")
+            print(f"⚠️ Strategy {i} failed: {e}")
             continue
     
     # If all strategies fail, raise the last error
     raise last_error or psycopg2.OperationalError("All connection strategies failed")
+
+def connect_with_ipv6_direct(config):
+    """New: Direct IPv6 connection with explicit IPv6 support"""
+    try:
+        # Force IPv6 connection by getting IPv6 address
+        addr_info = socket.getaddrinfo(
+            config['host'], config['port'], 
+            socket.AF_INET6, socket.SOCK_STREAM
+        )
+        if addr_info:
+            ipv6_host = addr_info[0][4][0]
+            config_copy = config.copy()
+            # For IPv6, we need to wrap the address in brackets if it contains colons
+            if ':' in ipv6_host and not ipv6_host.startswith('['):
+                config_copy['host'] = f'[{ipv6_host}]'
+            else:
+                config_copy['host'] = ipv6_host
+            return psycopg2.connect(**config_copy)
+        else:
+            raise psycopg2.OperationalError("No IPv6 addresses found")
+    except Exception as e:
+        raise psycopg2.OperationalError(f"IPv6 direct connection failed: {e}")
+
+def connect_with_ipv6_connection_string(config):
+    """New: IPv6-aware connection string approach"""
+    try:
+        # Get IPv6 address and create connection string
+        addr_info = socket.getaddrinfo(
+            config['host'], config['port'], 
+            socket.AF_INET6, socket.SOCK_STREAM
+        )
+        if addr_info:
+            ipv6_host = addr_info[0][4][0]
+            # Wrap IPv6 address in brackets for connection string
+            if ':' in ipv6_host and not ipv6_host.startswith('['):
+                host_part = f'[{ipv6_host}]'
+            else:
+                host_part = ipv6_host
+                
+            conn_string = (
+                f"host={host_part} "
+                f"port={config['port']} "
+                f"dbname={config['database']} "
+                f"user={config['user']} "
+                f"password={config['password']} "
+                f"sslmode={config['sslmode']} "
+                f"connect_timeout={config['connect_timeout']} "
+                f"application_name={config['application_name']}"
+            )
+            return psycopg2.connect(conn_string)
+        else:
+            raise psycopg2.OperationalError("No IPv6 addresses found for connection string")
+    except Exception as e:
+        raise psycopg2.OperationalError(f"IPv6 connection string failed: {e}")
 
 def connect_with_gethostbyname(config):
     """Use gethostbyname for IPv4 resolution (most compatible)"""
@@ -89,21 +143,6 @@ def connect_with_ipv4_force(config):
             raise psycopg2.OperationalError("No IPv4 addresses found")
     except Exception:
         raise psycopg2.OperationalError("IPv4 getaddrinfo resolution failed")
-
-def connect_with_connection_string(config):
-    """Use connection string approach for maximum compatibility"""
-    conn_string = (
-        f"host={config['host']} "
-        f"port={config['port']} "
-        f"dbname={config['database']} "
-        f"user={config['user']} "
-        f"password={config['password']} "
-        f"sslmode={config['sslmode']} "
-        f"connect_timeout={config['connect_timeout']} "
-        f"application_name={config['application_name']}"
-    )
-    return psycopg2.connect(conn_string)
-
 
 
 def get_indicators_by_sdg_goal(sdg_goal_number: int):
