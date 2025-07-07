@@ -260,7 +260,7 @@ export default function ConversationView() {
       const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
         method: "POST",
         headers: {
-          Authorization: `Bearer`,
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         },
         body: formData,
       });
