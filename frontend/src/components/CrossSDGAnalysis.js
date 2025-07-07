@@ -26,7 +26,7 @@ ChartJS.register(
   ArcElement
 );
 
-const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN;
+mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
 
 const CrossSDGAnalysis = ({ data, boundary = [], onBack, chartOnly = false, isModal = false }) => {
   // State management
