@@ -268,6 +268,10 @@ session_store = {
 class ChatbotRequest(BaseModel):
     query: str
     history: list[dict] | None = None
+    timestamp: int | None = None  # Accept timestamp for cache busting
+    class Config:
+        # Allow extra fields to be ignored instead of causing validation errors
+        extra = "ignore"
 
 class MostLeastImprovedRequest(BaseModel):
     sdg_goal_number: int
