@@ -28,7 +28,7 @@ ChartJS.register(
 );
 
 // Set Mapbox access token
-mapboxgl.accessToken = "pk.eyJ1Ijoic2FuZGVzaDMzOSIsImEiOiJjbThqazJuaTYwaTlwMmtwdzU4NzUwN3YwIn0.Kc6gPcC0Jf2rSJN4ieeimA";
+mapboxgl.accessToken = process.env.MAPBOX_TOKEN;
 
 // Color schemes for radius analysis
 const RADIUS_COLORS = {
