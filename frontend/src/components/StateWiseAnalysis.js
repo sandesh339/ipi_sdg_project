@@ -21,7 +21,7 @@ ChartJS.register(
   Legend
 );
 
-const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN;
+mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
 
 // Enhanced state colors for state-wise visualization
 const STATE_COLORS = [
