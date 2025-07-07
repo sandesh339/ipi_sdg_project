@@ -24,7 +24,7 @@ ChartJS.register(
   ArcElement
 );
 
-mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
+const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN;
 // Enhanced state colors for SDG data visualization
 const STATE_COLORS = [
   "#E74C3C", "#3498DB", "#2ECC71", "#F39C12", "#9B59B6", 
