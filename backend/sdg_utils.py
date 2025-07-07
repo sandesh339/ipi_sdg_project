@@ -6,16 +6,101 @@ from typing import List, Dict, Any, Optional
 from rapidfuzz import process, fuzz
 import re
 import os
+import socket
 
 def get_db_connection():
-    """Get database connection for SDG database"""
-    return psycopg2.connect(
-        dbname=os.getenv('DB_NAME'),
-        user=os.getenv('DB_USER'),
-        password=os.getenv('DB_PASSWORD'),
-        host=os.getenv('DB_HOST'),
-        port=os.getenv('DB_PORT')
+    """
+    Render-optimized database connection for Supabase
+    Handles IPv6/IPv4 connectivity issues for cloud deployment
+    """
+     
+    
+    # Configuration with environment variable support
+    config = {
+        'host': os.getenv('DB_HOST'),
+        'port': int(os.getenv('DB_PORT')),
+        'database': os.getenv('DB_NAME'),
+        'user': os.getenv('DB_USER'),
+        'password': os.getenv('DB_PASSWORD'),
+        'sslmode': 'require',
+        'connect_timeout': 30,
+        'application_name': 'SDG_Chatbot_Render'
+    }
+    
+    # Multiple connection strategies for maximum compatibility
+    strategies = [
+        # Strategy 1: Try gethostbyname for IPv4 (most reliable)
+        lambda: connect_with_gethostbyname(config),
+        # Strategy 2: Try forced IPv4 resolution 
+        lambda: connect_with_ipv4_force(config),
+        # Strategy 3: Connection string approach
+        lambda: connect_with_connection_string(config),
+        # Strategy 4: Fallback to original hostname
+        lambda: psycopg2.connect(**config)
+    ]
+    
+    last_error = None
+    for i, strategy in enumerate(strategies, 1):
+        try:
+            conn = strategy()
+            if conn:
+                # Test the connection with a quick query
+                cursor = conn.cursor()
+                cursor.execute("SELECT 1;")
+                cursor.fetchone()
+                cursor.close()
+                logger.info(f"✅ Connected using strategy {i}")
+                return conn
+        except Exception as e:
+            last_error = e
+            logger.info(f"⚠️ Strategy {i} failed: {e}")
+            continue
+    
+    # If all strategies fail, raise the last error
+    raise last_error or psycopg2.OperationalError("All connection strategies failed")
+
+def connect_with_gethostbyname(config):
+    """Use gethostbyname for IPv4 resolution (most compatible)"""
+    try:
+        ipv4_host = socket.gethostbyname(config['host'])
+        config_copy = config.copy()
+        config_copy['host'] = ipv4_host
+        return psycopg2.connect(**config_copy)
+    except Exception:
+        raise psycopg2.OperationalError("gethostbyname IPv4 resolution failed")
+
+def connect_with_ipv4_force(config):
+    """Force IPv4 connection by resolving hostname first"""
+    try:
+        addr_info = socket.getaddrinfo(
+            config['host'], config['port'], 
+            socket.AF_INET, socket.SOCK_STREAM
+        )
+        if addr_info:
+            ipv4_host = addr_info[0][4][0]
+            config_copy = config.copy()
+            config_copy['host'] = ipv4_host
+            return psycopg2.connect(**config_copy)
+        else:
+            raise psycopg2.OperationalError("No IPv4 addresses found")
+    except Exception:
+        raise psycopg2.OperationalError("IPv4 getaddrinfo resolution failed")
+
+def connect_with_connection_string(config):
+    """Use connection string approach for maximum compatibility"""
+    conn_string = (
+        f"host={config['host']} "
+        f"port={config['port']} "
+        f"dbname={config['database']} "
+        f"user={config['user']} "
+        f"password={config['password']} "
+        f"sslmode={config['sslmode']} "
+        f"connect_timeout={config['connect_timeout']} "
+        f"application_name={config['application_name']}"
     )
+    return psycopg2.connect(conn_string)
+
+
 
 def get_indicators_by_sdg_goal(sdg_goal_number: int):
     """
