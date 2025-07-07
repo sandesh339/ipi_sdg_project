@@ -33,6 +33,9 @@ from sdg_utils import (
 import tiktoken
 from datetime import datetime
 import os
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 
 # Constants for conversation management
 MAX_HISTORY_MESSAGES = 7  
