@@ -247,7 +247,7 @@ def analyze_sdg_query_intent(user_query):
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware, 
-    allow_origins=["https://euphonious-rugelach-5fe7a5.netlify.app"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
