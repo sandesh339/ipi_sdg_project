@@ -5,6 +5,7 @@ import json
 from typing import List, Dict, Any, Optional
 from rapidfuzz import process, fuzz
 import re
+import os
 
 def get_db_connection():
     """Get database connection for SDG database"""
