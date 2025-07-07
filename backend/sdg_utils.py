@@ -31,16 +31,14 @@ def get_db_connection():
     
     # Enhanced connection strategies with IPv6 priority
     strategies = [
-        # Strategy 1: Direct IPv6 connection (most likely to work for Supabase)
-        lambda: connect_with_ipv6_direct(config),
-        # Strategy 2: Connection string with IPv6 preference
-        lambda: connect_with_ipv6_connection_string(config),
-        # Strategy 3: Try gethostbyname for IPv4 (fallback)
+        # Strategy 1: Enhanced config (best for pooler)
+        lambda: connect_with_enhanced_config(config),
+        # Strategy 2: Original psycopg2 default
+        lambda: psycopg2.connect(**config),
+        # Strategy 3: Try gethostbyname for IPv4
         lambda: connect_with_gethostbyname(config),
-        # Strategy 4: Try forced IPv4 resolution 
-        lambda: connect_with_ipv4_force(config),
-        # Strategy 5: Original psycopg2 default
-        lambda: psycopg2.connect(**config)
+        # Strategy 4: Try forced IPv4 resolution
+        lambda: connect_with_ipv4_force(config)
     ]
     
     last_error = None
@@ -63,59 +61,17 @@ def get_db_connection():
     # If all strategies fail, raise the last error
     raise last_error or psycopg2.OperationalError("All connection strategies failed")
 
-def connect_with_ipv6_direct(config):
-    """New: Direct IPv6 connection with explicit IPv6 support"""
+def connect_with_enhanced_config(config):
+    """Original hostname with enhanced connection parameters"""
     try:
-        # Force IPv6 connection by getting IPv6 address
-        addr_info = socket.getaddrinfo(
-            config['host'], config['port'], 
-            socket.AF_INET6, socket.SOCK_STREAM
-        )
-        if addr_info:
-            ipv6_host = addr_info[0][4][0]
-            config_copy = config.copy()
-            # For IPv6, we need to wrap the address in brackets if it contains colons
-            if ':' in ipv6_host and not ipv6_host.startswith('['):
-                config_copy['host'] = f'[{ipv6_host}]'
-            else:
-                config_copy['host'] = ipv6_host
-            return psycopg2.connect(**config_copy)
-        else:
-            raise psycopg2.OperationalError("No IPv6 addresses found")
+        enhanced_config = config.copy()
+        # Add additional parameters that might help with connectivity
+        enhanced_config['keepalives_idle'] = 30
+        enhanced_config['keepalives_interval'] = 5
+        enhanced_config['keepalives_count'] = 5
+        return psycopg2.connect(**enhanced_config)
     except Exception as e:
-        raise psycopg2.OperationalError(f"IPv6 direct connection failed: {e}")
-
-def connect_with_ipv6_connection_string(config):
-    """New: IPv6-aware connection string approach"""
-    try:
-        # Get IPv6 address and create connection string
-        addr_info = socket.getaddrinfo(
-            config['host'], config['port'], 
-            socket.AF_INET6, socket.SOCK_STREAM
-        )
-        if addr_info:
-            ipv6_host = addr_info[0][4][0]
-            # Wrap IPv6 address in brackets for connection string
-            if ':' in ipv6_host and not ipv6_host.startswith('['):
-                host_part = f'[{ipv6_host}]'
-            else:
-                host_part = ipv6_host
-                
-            conn_string = (
-                f"host={host_part} "
-                f"port={config['port']} "
-                f"dbname={config['database']} "
-                f"user={config['user']} "
-                f"password={config['password']} "
-                f"sslmode={config['sslmode']} "
-                f"connect_timeout={config['connect_timeout']} "
-                f"application_name={config['application_name']}"
-            )
-            return psycopg2.connect(conn_string)
-        else:
-            raise psycopg2.OperationalError("No IPv6 addresses found for connection string")
-    except Exception as e:
-        raise psycopg2.OperationalError(f"IPv6 connection string failed: {e}")
+        raise psycopg2.OperationalError(f"Enhanced config connection failed: {e}")
 
 def connect_with_gethostbyname(config):
     """Use gethostbyname for IPv4 resolution (most compatible)"""
@@ -143,7 +99,6 @@ def connect_with_ipv4_force(config):
             raise psycopg2.OperationalError("No IPv4 addresses found")
     except Exception:
         raise psycopg2.OperationalError("IPv4 getaddrinfo resolution failed")
-
 
 def get_indicators_by_sdg_goal(sdg_goal_number: int):
     """
