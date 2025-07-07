@@ -143,7 +143,7 @@ export default function ConversationView() {
     setIsLoading(true);
 
     try {
-      const res = await fetch("https://ipi-sdg-project.onrender.com", {
+      const res = await fetch("https://ipi-sdg-project.onrender.com/chatbot", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
