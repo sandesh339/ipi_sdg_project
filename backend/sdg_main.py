@@ -288,6 +288,7 @@ async def chatbot(request: ChatbotRequest):
             raise HTTPException(status_code=500, detail=f"Database connection error: {str(e)}")
 
         user_input = request.query
+        print("Request body:", request.dict())
         print("User query:", user_input)
         session = session_store
 
@@ -296,7 +297,13 @@ async def chatbot(request: ChatbotRequest):
 
         # Add user message to history
         user_message = {"role": "user", "content": user_input}
-        session["history"] = manage_conversation_history(session["history"], user_message)
+        try:
+             session["history"] = manage_conversation_history(session["history"], user_message)
+        except Exception as e:
+            print("History management error:", str(e))
+            raise HTTPException(status_code=500, detail=f"Histroy error: {str(e)}")
+            
+       
 
         def execute_function_call(function_name, arguments):
             """Execute a single function call and return the result"""
