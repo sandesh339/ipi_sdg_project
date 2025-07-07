@@ -9,11 +9,11 @@ import re
 def get_db_connection():
     """Get database connection for SDG database"""
     return psycopg2.connect(
-        dbname='sdgquery',
-        user='postgres',
-        password='Happy123-',
-        host='localhost',
-        port='5432'
+        dbname=os.getenv('DB_NAME'),
+        user=os.getenv('DB_USER'),
+        password=os.getenv('DB_PASSWORD'),
+        host=os.getenv('DB_HOST'),
+        port=os.getenv('DB_PORT')
     )
 
 def get_indicators_by_sdg_goal(sdg_goal_number: int):
