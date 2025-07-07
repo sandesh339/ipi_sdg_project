@@ -253,7 +253,7 @@ app.add_middleware(
 )
 
 client = OpenAI(
-    api_key=os.getenv("")
+    api_key=os.getenv("OPEN_API_KEY")
 )
 
 # Session storage
